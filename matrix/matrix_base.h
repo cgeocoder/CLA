@@ -7,7 +7,7 @@
 /*
 	Cpp Linear Algebra Library
 */
-namespace cppml {
+namespace la {
 
 	/*
 		Matrix template base class
@@ -227,8 +227,8 @@ namespace cppml {
 		typename T, unsigned int _RowsT, unsigned int _ColumnsT,
 		typename U, unsigned int _RowsU, unsigned int _ColumnsU>
 	auto operator * (
-		Matrix<T, _RowsT, _ColumnsT>
-		_Left, Matrix<U, _RowsU, _ColumnsU> _Right
+		Matrix<T, _RowsT, _ColumnsT> _Left, 
+		Matrix<U, _RowsU, _ColumnsU> _Right
 	) {
 		static_assert((_ColumnsT == _RowsU) && "product of the matrices is not defined");
 
@@ -336,13 +336,20 @@ namespace cppml {
 		return res;
 	}
 
+	// The matrix determinant of matrix 1x1
 	template<typename T>
-	inline T dt(Matrix<T, 2, 2> _Mat) {
-		return _Mat.at(0, 0) * _Mat.at(1, 1) - _Mat.at(0, 1) * _Mat.at(1, 0);
+	inline T dt(Matrix<T, 1, 1> _Mat) {
+		return _Mat.at(0, 0);
 	}
 
+	// The matrix determinant
+	// 
+	// The method of minor and algebraic addition
+	// @param _Mat sqaure matrix n*n
 	template<typename T, int n>
-	inline T dt(Matrix<T, n, n> _Mat) {
+	T dt(Matrix<T, n, n> _Mat) {
+		static_assert(n > 1);
+
 		T res{};
 
 		for (int row = 0; row < n; ++row) {
