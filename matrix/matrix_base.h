@@ -336,21 +336,20 @@ namespace cppml {
 		return res;
 	}
 
-	// 2x2
 	template<typename T>
-	inline T det(Matrix<T, 2, 2> _Mat) {
+	inline T dt(Matrix<T, 2, 2> _Mat) {
 		return _Mat.at(0, 0) * _Mat.at(1, 1) - _Mat.at(0, 1) * _Mat.at(1, 0);
 	}
 
-	template<typename T, int n_src, int n_res>
-	T matrix_high_det(Matrix<T, n_src, n_src> _Mat) {
+	template<typename T, int n>
+	inline T dt(Matrix<T, n, n> _Mat) {
 		T res{};
 
-		for (int row = 0; row < n_src; ++row) {
-			Matrix<T, n_res, n_res> tmp_mat;
+		for (int row = 0; row < n; ++row) {
+			Matrix<T, n - 1, n - 1> tmp_mat;
 
-			for (int i = 1, tline = 0, trow = 0; i < n_src; ++i) {
-				for (int j = 0; j < n_src; ++j) {
+			for (int i = 1, tline = 0, trow = 0; i < n; ++i) {
+				for (int j = 0; j < n; ++j) {
 					if (j != row)
 						tmp_mat.at(tline, trow++) = _Mat.at(i, j);
 				}
@@ -359,43 +358,11 @@ namespace cppml {
 				trow = 0;
 			}
 
-			res += _Mat.at(0, row) * (T)std::pow(-1, 2 + row) * det<T>(tmp_mat);
+			res += _Mat.at(0, row) * (T)std::pow(-1, 2 + row) * dt<T>(tmp_mat);
 		}
 
 		return res;
 	}
-
-	// 3x3
-	template<typename T>
-	inline T det(Matrix<T, 3, 3> _Mat) { return matrix_high_det<T, 3, 2>(_Mat); }
-
-	// 4x4
-	template<typename T>
-	inline T det(Matrix<T, 4, 4> _Mat) { return matrix_high_det<T, 4, 3>(_Mat); }
-
-	// 5x5
-	template<typename T>
-	inline T det(Matrix<T, 5, 5> _Mat) { return matrix_high_det<T, 5, 4>(_Mat); }
-
-	// 6x6
-	template<typename T>
-	inline T det(Matrix<T, 6, 6> _Mat) { return matrix_high_det<T, 6, 5>(_Mat); }
-
-	// 7x7
-	template<typename T>
-	inline T det(Matrix<T, 7, 7> _Mat) { return matrix_high_det<T, 7, 6>(_Mat); }
-
-	// 8x8
-	template<typename T>
-	inline T det(Matrix<T, 8, 8> _Mat) { return matrix_high_det<T, 8, 7>(_Mat); }
-
-	// 9x9
-	template<typename T>
-	inline T det(Matrix<T, 9, 9> _Mat) { return matrix_high_det<T, 9, 8>(_Mat); }
-
-	// 10x10
-	template<typename T>
-	inline T det(Matrix<T, 10, 10> _Mat) { return matrix_high_det<T, 10, 9>(_Mat); }
 }
 
 #endif // !__MATRIX_BASE_H__
