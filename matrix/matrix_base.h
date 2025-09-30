@@ -365,7 +365,9 @@ namespace la {
 				trow = 0;
 			}
 
-			res += _Mat.at(0, row) * (T)std::pow(-1, 2 + row) * dt<T>(tmp_mat);
+			T sign = (T)(1 - 2 * ((2 + row) % 2));
+
+			res += _Mat.at(0, row) * sign * dt<T>(tmp_mat);
 		}
 
 		return res;
