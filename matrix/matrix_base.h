@@ -1,8 +1,13 @@
 #pragma once
 #include <exception>
+#include <array>
+#include <initializer_list>
+#include <iostream>
+#include <type_traits>
+#include <utility>
 
 #ifndef __MATRIX_BASE_H__
-#define __MATRIX_BASE_H__
+#define __MATRIX_BASE_H__  
 
 /*
 	Cpp Linear Algebra Library
@@ -15,18 +20,26 @@ namespace la {
 	template <typename T, unsigned int _Rows, unsigned int _Columns>
 	class Matrix {
 	private:
-		void alloc_data() {
+		void _alloc_data() {
 			m_Data = new T*[_Rows];
 			for (unsigned int i = 0; i < _Rows; ++i) {
 					m_Data[i] = new T[_Columns];
 			}
 		}
 
+		void _validate_template_parameters() {
+			static_assert((_Rows >= 1) && (_Columns >= 1),
+				"Matrix rows and columns must be >= 1");
+
+			static_assert(std::is_trivially_destructible_v<T>,
+				"Matrix<T, _Rows, _Columns> required T to be trivial");
+
+			_alloc_data();
+		}
+
 	public:
 		Matrix() {
-			static_assert((_Rows >= 1) && (_Columns >= 1));
-
-			alloc_data();
+			_validate_template_parameters();
 
 			for (unsigned int i = 0; i < _Rows; ++i) {
 				for (unsigned int j = 0; j < _Columns; ++j) {
@@ -36,31 +49,23 @@ namespace la {
 		}
 
 		Matrix(const Matrix<T, _Rows, _Columns>& _Copy) {
-			static_assert((_Rows >= 1) && (_Columns >= 1));
-
-			alloc_data();
+			_validate_template_parameters();
 
 			for (unsigned int i = 0; i < _Rows; ++i) {
 				std::memcpy(m_Data[i], _Copy.m_Data[i], sizeof(T) * _Columns);
 			}
 		}
 
-		template<size_t rl, size_t cl>
-		Matrix(const T(&_Mat)[rl][cl]) {
-			static_assert((_Rows >= 1) && (_Columns >= 1) && (rl == _Rows) && (cl == _Columns));
-
-			alloc_data();
+		Matrix(const T(&_Mat)[_Rows][_Columns]) {
+			_validate_template_parameters();
 
 			for (unsigned int i = 0; i < _Rows; ++i) {
 				std::memcpy(m_Data[i], _Mat[i], sizeof(T) * _Columns);
 			}
 		}
 
-		template<size_t rl, size_t cl>
-		Matrix(T (&_Mat)[rl][cl]) {
-			static_assert((_Rows >= 1) && (_Columns >= 1) && (rl == _Rows) && (cl == _Columns));
-
-			alloc_data();
+		Matrix(T (&_Mat)[_Rows][_Columns]) {
+			_validate_template_parameters();
 
 			for (unsigned int i = 0; i < _Rows; ++i) {
 				std::memcpy(m_Data[i], _Mat[i], sizeof(T) * _Columns);
@@ -79,14 +84,17 @@ namespace la {
 
 		inline T** data() const { return m_Data; }
 
-		inline T* operator[](unsigned int _Index) const {
-			if (_Index >= _Rows)
-				throw std::exception(__FUNCTION__ "(): _Index out of range (_Rows)");
+		inline T& at(unsigned int _Row, unsigned int _Column) {
+			if (_Row >= _Rows)
+				throw std::exception(__FUNCTION__ "(): _Row out of range (_Rows)");
 
-			return m_Data[_Index];
+			if (_Column >= _Columns)
+				throw std::exception(__FUNCTION__ "(): _Column out of range (_Columns)");
+
+			return m_Data[_Row][_Column];
 		}
 
-		inline T& at(unsigned int _Row, unsigned int _Column) {
+		inline T& operator ()(unsigned int _Row, unsigned int _Column) {
 			if (_Row >= _Rows)
 				throw std::exception(__FUNCTION__ "(): _Row out of range (_Rows)");
 
@@ -102,6 +110,19 @@ namespace la {
 			for (unsigned int i = 0; i < _Rows; ++i) {
 				for (unsigned int j = 0; j < _Columns; ++j) {
 					res.m_Data[j][i] = m_Data[i][j];
+				}
+			}
+
+			return res;
+		}
+
+		template<typename U>
+		operator Matrix<U, _Rows, _Columns>() const {
+			Matrix<U, _Rows, _Columns> res;
+
+			for (unsigned int i = 0; i < _Rows; ++i) {
+				for (unsigned int j = 0; j < _Columns; ++j) {
+					res.m_Data[i][j] = (U)m_Data[i][j];
 				}
 			}
 
@@ -170,7 +191,7 @@ namespace la {
 		template<typename U>
 		Matrix<T, _Rows, _Columns>& operator += (
 			Matrix<U, _Rows, _Columns>& _Right
-			) {
+		) {
 			for (unsigned int i = 0; i < _Rows; ++i) {
 				for (unsigned int j = 0; j < _Columns; ++j) {
 					m_Data[i][j] += (T)_Right.m_Data[i][j];
@@ -183,7 +204,7 @@ namespace la {
 		template<typename U>
 		Matrix<T, _Rows, _Columns>& operator -= (
 			Matrix<U, _Rows, _Columns>& _Right
-			) {
+		) {
 			for (unsigned int i = 0; i < _Rows; ++i) {
 				for (unsigned int j = 0; j < _Columns; ++j) {
 					m_Data[i][j] -= (T)_Right.m_Data[i][j];
@@ -196,7 +217,7 @@ namespace la {
 		template<typename U>
 		Matrix<T, _Rows, _Columns>& operator *= (
 			const U& _Right
-			) {
+		) {
 			for (unsigned int i = 0; i < _Rows; ++i) {
 				for (unsigned int j = 0; j < _Columns; ++j) {
 					m_Data[i][j] *= (T)_Right;
@@ -209,7 +230,7 @@ namespace la {
 		template<typename U>
 		Matrix<T, _Rows, _Columns>& operator /= (
 			const U& _Right
-			) {
+		) {
 			for (unsigned int i = 0; i < _Rows; ++i) {
 				for (unsigned int j = 0; j < _Columns; ++j) {
 					m_Data[i][j] /= (T)_Right;
@@ -346,17 +367,17 @@ namespace la {
 	// 
 	// The method of minor and algebraic addition
 	// @param _Mat sqaure matrix n*n
-	template<typename T, int n>
-	T dt(Matrix<T, n, n> _Mat) {
-		static_assert(n > 1);
+	template<typename T, int _N>
+	T dt(Matrix<T, _N, _N> _Mat) {
+		static_assert(_N > 1);
 
 		T res{};
 
-		for (int row = 0; row < n; ++row) {
-			Matrix<T, n - 1, n - 1> tmp_mat;
+		for (int row = 0; row < _N; ++row) {
+			Matrix<T, _N - 1, _N - 1> tmp_mat;
 
-			for (int i = 1, tline = 0, trow = 0; i < n; ++i) {
-				for (int j = 0; j < n; ++j) {
+			for (int i = 1, tline = 0, trow = 0; i < _N; ++i) {
+				for (int j = 0; j < _N; ++j) {
 					if (j != row)
 						tmp_mat.at(tline, trow++) = _Mat.at(i, j);
 				}
