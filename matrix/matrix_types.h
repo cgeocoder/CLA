@@ -5,7 +5,7 @@
 
 #include "matrix_base.h"
 
-namespace cppml {
+namespace la {
 
 template <typename T> using Mat1x1 = Matrix<T, 1, 1>;
 template <typename T> using Mat1x2 = Matrix<T, 1, 2>;
