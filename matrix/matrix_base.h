@@ -240,7 +240,39 @@ namespace la {
 			return *this;
 		}
 
-	public:
+		template<typename T>
+		friend inline T det(Matrix<T, 1, 1>);
+
+		template<typename T, int _N>
+		friend T det(Matrix<T, _N, _N>);
+
+		template<typename T, unsigned int _N>
+		friend Matrix<double, _N, _N> inverse(Matrix<T, _N, _N>);
+
+		template<typename T, typename U, unsigned int _Rows, unsigned int _Columns>
+		friend auto operator / (Matrix<T, _Rows, _Columns>, U);
+
+		template<typename T, typename U, unsigned int _Rows, unsigned int _Columns>
+		friend auto operator * (U, Matrix<T, _Rows, _Columns>);
+
+		template<typename T, typename U, unsigned int _Rows, unsigned int _Columns>
+		friend auto operator * (Matrix<T, _Rows, _Columns>, U);
+
+		template<typename T, typename U, unsigned int _Rows, unsigned int _Columns>
+		friend auto operator - (Matrix<T, _Rows, _Columns>, Matrix<U, _Rows, _Columns>);
+
+		template<typename T, typename U, unsigned int _Rows, unsigned int _Columns>
+		friend auto operator + (Matrix<T, _Rows, _Columns>, Matrix<U, _Rows, _Columns>);
+
+		template<
+			typename T, unsigned int _RowsT, unsigned int _ColumnsT,
+			typename U, unsigned int _RowsU, unsigned int _ColumnsU>
+		friend auto operator * (
+			Matrix<T, _RowsT, _ColumnsT> _Left,
+			Matrix<U, _RowsU, _ColumnsU> _Right
+		);
+
+	private:
 		T **m_Data;
 	};
 }
